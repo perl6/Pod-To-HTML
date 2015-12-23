@@ -1,6 +1,6 @@
 {
     "name"        : "Pod::To::HTML",
-    "version"     : "*",
+    "version"     : "0.0.1",
     "description" : "Convert Perl 6 Pod to HTML",
     "depends"     : ["URI"],
     "provides"    : {
