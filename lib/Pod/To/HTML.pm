@@ -1,4 +1,4 @@
-unit class Pod::To::HTML;
+unit class Pod::To::HTML:ver<0.0.1>;
 use URI::Escape;
 
 #try require Term::ANSIColor <&colored>;
