@@ -4,6 +4,8 @@ Pod::To::HTML
 
 Render Pod6 as HTML
 
+[![Build Status](https://travis-ci.org/perl6/Pod-To-HTML.svg?branch=master)](https://travis-ci.org/perl6/Pod-To-HTML)
+
 # SYNOPSIS
 
 From the command line:
