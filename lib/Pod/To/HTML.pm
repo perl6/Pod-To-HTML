@@ -10,26 +10,31 @@ sub colored($text, $how) {
     $text
 }
 
-multi method render($pod) {
-    pod2html($pod)
-}
-
-multi method render(Array $pod, Str :$header = '', Str :$footer = '', Str :head-fields($head) = '', :$default-title = '', :$lang = 'en') {
-    pod2html($pod, :$header, :$footer, :$head, :$default-title, :$lang)
-}
-
-multi method render(Pod::Block $pod, Str :$header = '', Str :$footer = '', Str :head-fields($head) = '', :$default-title = '', :$lang = 'en') {
-    pod2html($pod, :$header, :$footer, :$head, :$default-title, :$lang)
-}
-
-multi method render(IO::Path $file, Str :$header = '', Str :$footer = '', Str :head-fields($head) = '', :$default-title = '', :$lang = 'en') {
-    use MONKEY-SEE-NO-EVAL;
-    pod2html(EVAL($file.slurp ~ "\n\$=pod"), :$header, :$footer, :$head, :$default-title, :$lang);
-}
-
-multi method render(Str $pod-string, Str :$header = '', Str :$footer = '', Str :head-fields($head) = '', :$default-title = '', :$lang = 'en') {
-    use MONKEY-SEE-NO-EVAL;
-    pod2html(EVAL($pod-string ~ "\n\$=pod"), :$header, :$footer, :$head, :$default-title, :$lang);
+method render(
+    $pod,
+    Str :$header = '',
+    Str :$footer = '',
+    Str :head-fields($head) = '',
+    :$default-title = '',
+    :$lang = 'en'
+    ) {
+    given $pod {
+        when Array {
+            pod2html($pod, :$header, :$footer, :$head, :$default-title, :$lang)
+        }
+        when Pod::Block {
+            pod2html($pod, :$header, :$footer, :$head, :$default-title, :$lang)
+        }
+        when IO::Path {
+            use MONKEY-SEE-NO-EVAL;
+            pod2html(EVAL($file.slurp ~ "\n\$=pod"), :$header, :$footer, :$head, :$default-title, :$lang);
+        }
+        when Str {
+            use MONKEY-SEE-NO-EVAL;
+            pod2html(EVAL($pod-string ~ "\n\$=pod"), :$header, :$footer, :$head, :$default-title, :$lang);
+        }
+        default { pod2html($pod) }
+    }
 }
 
 # FIXME: this code's a horrible mess. It'd be really helpful to have a module providing a generic
@@ -141,9 +146,17 @@ sub assemble-list-items(:@content, :$node, *% ) {
 
 
 #| Converts a Pod tree to a HTML document.
-sub pod2html($pod, :&url = -> $url { $url }, :$head = '', :$header = '', :$footer = '', :$default-title,
-  :$css-url = '//design.perl6.org/perl.css', :$lang = 'en',
-) is export returns Str {
+sub pod2html(
+    $pod,
+    :&url = -> $url { $url },
+    :$head = '',
+    :$header = '',
+    :$footer = '',
+    :$default-title,
+    :$css-url = '//design.perl6.org/perl.css',
+    :$lang = 'en',
+    --> Str
+    ) is export {
     ($title, $subtitle, @meta, @indexes, @body, @footnotes) = ();
     #| Keep count of how many footnotes we've output.
     my Int $*done-notes = 0;
@@ -202,14 +215,14 @@ sub pod2html($pod, :&url = -> $url { $url }, :$head = '', :$header = '', :$foote
 }
 
 #| Returns accumulated metadata as a string of C«<meta>» tags
-sub do-metadata returns Str {
+sub do-metadata(--> Str) {
     return @meta.map(-> $p {
         qq[<meta name="{escape_html($p.key)}" value="{node2text($p.value)}" />]
     }).join("\n");
 }
 
 #| Turns accumulated headings into a nested-C«<ol>» table of contents
-sub do-toc($pod) returns Str {
+sub do-toc($pod --> Str) {
     my @levels is default(0) = 0;
     my proto sub find-headings($node, :$inside-heading){*}
     multi sub find-headings(Str $s is raw, :$inside-heading){ $inside-heading ?? $s.trim !! '' }
@@ -254,7 +267,7 @@ sub do-toc($pod) returns Str {
 #| Flushes accumulated footnotes since last call. The idea here is that we can stick calls to this
 #| before each C«</section>» tag (once we have those per-header) and have notes that are visually
 #| and semantically attached to the section.
-sub do-footnotes returns Str {
+sub do-footnotes(--> Str) {
     return '' unless @footnotes;
 
     my Int $current-note = $*done-notes + 1;
@@ -277,7 +290,6 @@ multi sub node2html($node) {
     Debug { note colored("Generic node2html called for ", "bold") ~ $node.perl };
     return node2inline($node);
 }
-
 multi sub node2html(Pod::Block::Declarator $node) {
     given $node.WHEREFORE {
         when Routine {
@@ -294,7 +306,6 @@ multi sub node2html(Pod::Block::Declarator $node) {
         }
     }
 }
-
 multi sub node2html(Pod::Block::Code $node) {
     Debug { note colored("Code node2html called for ", "bold") ~ $node.gist };
     if %*POD2HTML-CALLBACKS and %*POD2HTML-CALLBACKS<code> -> &cb {
@@ -307,12 +318,10 @@ multi sub node2html(Pod::Block::Code $node) {
     }
 
 }
-
 multi sub node2html(Pod::Block::Comment $node) {
     Debug { note colored("Comment node2html called for ", "bold") ~ $node.gist };
     return '';
 }
-
 multi sub node2html(Pod::Block::Named $node) {
     Debug { note colored("Named Block node2html called for ", "bold") ~ $node.gist };
     given $node.name {
@@ -374,12 +383,10 @@ multi sub node2html(Pod::Block::Named $node) {
         }
     }
 }
-
 multi sub node2html(Pod::Block::Para $node) {
     Debug { note colored("Para node2html called for ", "bold") ~ $node.gist };
     return '<p>' ~ node2inline($node.contents) ~ "</p>\n";
 }
-
 multi sub node2html(Pod::Block::Table $node) {
     Debug { note colored("Table node2html called for ", "bold") ~ $node.gist };
     my @r = '<table class="pod-table">';
@@ -448,27 +455,23 @@ multi sub node2html(Pod::Item $node) {
     Debug { note colored("List Item node2html called for ", "bold") ~ $node.gist };
     return '<li>' ~ node2html($node.contents) ~ "</li>\n";
 }
-
 multi sub node2html(Positional $node) {
     return $node.map({ node2html($_) }).join
 }
-
 multi sub node2html(Str $node) {
     return escape_html($node);
 }
 
 
 #| inline level or below
-multi sub node2inline($node) returns Str {
+multi sub node2inline($node --> Str) {
     Debug { note colored("missing a node2inline multi for ", "bold") ~ $node.gist };
     return node2text($node);
 }
-
-multi sub node2inline(Pod::Block::Para $node) returns Str {
-    return node2inline($node.contents);
+multi sub node2inline(Pod::Block::Para $node --> Str) {
+    samewith $node.contents;
 }
-
-multi sub node2inline(Pod::FormattingCode $node) returns Str {
+multi sub node2inline(Pod::FormattingCode $node --> Str) {
     my %basic-html = (
         B => 'strong',  #= Basis
         C => 'code',    #= Code
@@ -553,26 +556,23 @@ multi sub node2inline(Pod::FormattingCode $node) returns Str {
     }
 }
 
-multi sub node2inline(Positional $node) returns Str {
+multi sub node2inline(Positional $node --> Str) {
     return $node.map({ node2inline($_) }).join;
 }
-
-multi sub node2inline(Str $node) returns Str {
+multi sub node2inline(Str $node --> Str) {
     return escape_html($node);
 }
 
 
 #| HTML-escaped text
-multi sub node2text($node) returns Str {
+multi sub node2text($node --> Str) {
     Debug { note colored("missing a node2text multi for ", "red") ~ $node.perl };
     return escape_html(node2rawtext($node));
 }
-
-multi sub node2text(Pod::Block::Para $node) returns Str {
-    return node2text($node.contents);
+multi sub node2text(Pod::Block::Para $node --> Str) {
+    samewith $node.contents;
 }
-
-multi sub node2text(Pod::Raw $node) returns Str {
+multi sub node2text(Pod::Raw $node --> Str) {
     my $t = $node.target;
     if $t && lc($t) eq 'html' {
         $node.contents.join
@@ -584,31 +584,27 @@ multi sub node2text(Pod::Raw $node) returns Str {
 
 # FIXME: a lot of these multis are identical except the function name used...
 #        there has to be a better way to write this?
-multi sub node2text(Positional $node) returns Str {
+multi sub node2text(Positional $node --> Str) {
     return $node.map({ node2text($_) }).join;
 }
-
-multi sub node2text(Str $node) returns Str {
+multi sub node2text(Str $node --> Str) {
     return escape_html($node);
 }
 
 
 #| plain, unescaped text
-multi sub node2rawtext($node) returns Str {
+multi sub node2rawtext($node --> Str) {
     Debug { note colored("Generic node2rawtext called with ", "red") ~ $node.perl };
     return $node.Str;
 }
-
-multi sub node2rawtext(Pod::Block $node) returns Str {
+multi sub node2rawtext(Pod::Block $node --> Str) {
     Debug { note colored("node2rawtext called for ", "bold") ~ $node.gist };
-    return node2rawtext($node.contents);
+    samewith $node.contents;
 }
-
-multi sub node2rawtext(Positional $node) returns Str {
+multi sub node2rawtext(Positional $node --> Str) {
     return $node.map({ node2rawtext($_) }).join;
 }
-
-multi sub node2rawtext(Str $node) returns Str {
+multi sub node2rawtext(Str $node --> Str) {
     return $node;
 }
 
