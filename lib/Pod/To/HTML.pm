@@ -348,7 +348,7 @@ multi sub node2html(Pod::Block::Named $node) {
             return qq[<img src="$url" />];
         }
         when 'Xhtml' | 'Html' {
-            unescape_html node2rawhtml $node.contents
+            node2rawhtml $node.contents
         }
         default {
             if $node.name eq 'TITLE' {
