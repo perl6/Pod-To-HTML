@@ -376,7 +376,7 @@ multi sub node2html(Pod::Block::Named $node) {
 }
 
 sub node2rawhtml(Positional $node) {
-    return $node.map({ $_.contents }).join
+    return $node.map({ node2rawtext $_}).join: "\n"
 }
 
 multi sub node2html(Pod::Block::Para $node) {
