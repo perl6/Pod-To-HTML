@@ -45,8 +45,8 @@ my @body;
 my @footnotes;
 my %crossrefs;
 
-
-constant DEBUG = %*ENV<P6DOC_DEBUG>;
+# see <https://docs.perl6.org/language/traps#Constants_are_Compile_Time>
+my constant DEBUG = %*ENV<P6DOC_DEBUG>;
 sub Debug(Callable $c) { $c() if DEBUG; }
 
 sub escape_html(Str $str) returns Str {
