@@ -46,8 +46,8 @@ my @footnotes;
 my %crossrefs;
 
 # see <https://docs.perl6.org/language/traps#Constants_are_Compile_Time>
-my constant DEBUG = %*ENV<P6DOC_DEBUG>;
-sub Debug(Callable $c) { $c() if DEBUG; }
+my  $DEBUG := %*ENV<P6DOC_DEBUG>;
+sub Debug(Callable $c) { $c() if $DEBUG; }
 
 sub escape_html(Str $str) returns Str {
     return $str unless $str ~~ /<[&<>"']>/;
