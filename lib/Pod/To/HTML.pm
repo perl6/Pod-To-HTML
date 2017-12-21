@@ -45,8 +45,9 @@ my @body;
 my @footnotes;
 my %crossrefs;
 
- sub Debug(Callable $)  { }         # Disable debug code
-# sub Debug(Callable $c) { $c() }    # Enable debug code
+
+constant DEBUG = %*ENV<P6DOC_DEBUG>;
+sub Debug(Callable $c) { $c() if DEBUG; }
 
 sub escape_html(Str $str) returns Str {
     return $str unless $str ~~ /<[&<>"']>/;
@@ -143,7 +144,7 @@ sub assemble-list-items(:@content, :$node, *% ) {
 #| Converts a Pod tree to a HTML document.
 sub pod2html($pod, :&url = -> $url { $url }, :$head = '', :$header = '', :$footer = '', :$default-title,
   :$css-url = '//design.perl6.org/perl.css', :$lang = 'en',
-) is export returns Str {
+    ) is export returns Str {
     ($title, $subtitle, @meta, @indexes, @body, @footnotes) = ();
     #| Keep count of how many footnotes we've output.
     my Int $*done-notes = 0;
