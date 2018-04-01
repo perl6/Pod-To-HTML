@@ -37,8 +37,8 @@ say Pod::To::HTML.render($pod,
                          header => "your-custom-header-inside-body",
                          footer => "your-custom-footer-inside-body",
                          head-fields => "tags-inside-head",
-			 lang        => "document language (defaults to 'en')",
-                         default-title = 'No =title was found so we use this');
+			             lang        => "document language (defaults to 'en')",
+                         default-title => 'No =title was found so we use this');
 ```
 
 ## DESCRIPTION
@@ -49,4 +49,4 @@ The other route is with the `render` method (called by `--doc=HTML`), which crea
 
 ## DEBUGGING
 
-You can set `P6DOC_DEBUG` environmental variable to make the module produce some debugging information.
+You can set the `P6DOC_DEBUG` environmental variable to make the module produce some debugging information.

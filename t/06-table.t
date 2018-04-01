@@ -1,11 +1,11 @@
-use Test;
+use Test; # -*- mode: perl6 -*-
 use Pod::To::HTML;
 
 plan 4;
 
 my $r;
 
-=table
+=table 
   col1  col2
 
 $r = pod2html $=pod[0];
@@ -46,7 +46,7 @@ ok $r ~~ ms[[
 ]];
 
 
-=begin table
+=begin table :class<sorttable>
 
   H1    H2
   --    --
@@ -59,7 +59,7 @@ ok $r ~~ ms[[
 $r = pod2html $=pod[2];
 #say $r.perl;
 ok $r ~~ ms[[
-    '<table class="pod-table">'
+    '<table class="pod-table sorttable">'
       '<thead>'
         '<tr>'
           '<th>' H1 '</th>'

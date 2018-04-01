@@ -149,7 +149,6 @@ sub pod2html($pod, :&url = -> $url { $url }, :$head = '', :$header = '', :$foote
     #| Keep count of how many footnotes we've output.
     my Int $*done-notes = 0;
     &OUTER::url = &url;
-
     @body.push: node2html($pod.map: { visit $_, :assemble(&assemble-list-items) });
 
     my $title_html = $title // $default-title // '';
@@ -387,7 +386,7 @@ multi sub node2html(Pod::Block::Para $node) {
 
 multi sub node2html(Pod::Block::Table $node) {
     Debug { note colored("Table node2html called for ", "bold") ~ $node.gist };
-    my @r = '<table class="pod-table">';
+    my @r = $node.config<class>??'<table class="pod-table '~$node.config<class>~'">'!!'<table class="pod-table">';
 
     if $node.config<caption> -> $c {
         @r.push("<caption>{node2inline($c)}</caption>");
