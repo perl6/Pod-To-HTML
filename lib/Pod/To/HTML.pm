@@ -545,17 +545,21 @@ multi sub node2inline(Pod::FormattingCode $node) returns Str {
 
         # Links
         when 'L' {
-            my $text = node2inline($node.contents);
-            my $url  = $node.meta[0] || node2text($node.contents);
-            if $text ~~ /^'#'/ {
-                # if we have an internal-only link, strip the # from the text.
-                $text = $/.postmatch
-            }
-            $url = url(unescape_html($url));
-            if $url ~~ /^'#'/ {
-                $url = '#' ~ uri_escape( escape_id($/.postmatch) )
-            }
-            return qq[<a href="$url">{$text}</a>]
+                  my $text = node2inline($node.contents);
+                  my $url  = $node.meta[0] || node2text($node.contents);
+                  if $text ~~ /^'#'/ {
+                      # if we have an internal-only link, strip the # from the text.
+                      $text = $/.postmatch
+                  }
+                  if ! $text ~~ /^\?/ {
+                      $url = url(unescape_html($url));
+                  }
+
+                  if $url ~~ /^'#'/ {
+                      $url = '#' ~ uri_escape( escape_id($/.postmatch) )
+                  }
+
+                  return qq[<a href="$url">{$text}</a>]
         }
 
         # zero-width comment
